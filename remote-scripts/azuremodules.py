@@ -111,6 +111,8 @@ def DetectDistro():
 				break
 			elif (re.match(r'.*Fedora.*',line,re.M|re.I)):
 				distribution = 'fedora'
+			elif (re.match(r'.coreos.*',line,re.M|re.I)):
+				distribution = 'coreos'
 				break					
 	return [distribution, version]
 

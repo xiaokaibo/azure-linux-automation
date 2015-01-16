@@ -31,7 +31,15 @@ if ($isDeployed)
 
         LogMsg "Executing : $($currentTestData.testScript)"
         try{
-			$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "python ./$($currentTestData.testScript)" -runAsSudo
+        	$OS_verify= RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat /etc/*release* | grep 'CoreOS' | wc -l" -runAsSudo
+        	$OS_verify=[int]$OS_verify.trim()
+        	if ($OS_verify -gt 0 )
+        	{
+        	$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "/usr/share/oem/python/bin/python ./$($currentTestData.testScript)" -runAsSudo
+        	}
+        	else{
+        	$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "python ./$($currentTestData.testScript)" -runAsSudo
+        	}
 			$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "ls /home/$user/SetupStatus.txt  2>&1" -runAsSudo
 			
 			if($output -imatch "/home/$user/SetupStatus.txt")
@@ -57,7 +65,13 @@ if ($isDeployed)
 					LogMsg "** All the required packages for the distro installed successfully **"					
 					GetVMLogs -DeployedServices $isDeployed
 					#VM De-provision
+					if ($OS_verify -gt 0 )
+					{
+					$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "/usr/share/oem/bin/waagent -force -deprovision+user 2>&1" -runAsSudo
+					}
+					else {
 					$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "/usr/sbin/waagent -force -deprovision+user 2>&1" -runAsSudo
+					}
 					if($output -match "home directory will be deleted")
 					{
 						LogMsg "** VM De-provisioned Successfully **"

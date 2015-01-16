@@ -63,6 +63,56 @@ def zypper_package_install(package):
 		return True
 	else:
 		return False
+def coreos_package_install():
+	#environment configure
+	profilepath="/etc/profile"
+	rootprofilepath="/root/.bash_profile"
+	binpath="/usr/share/oem/bin"
+	pythonlibrary="/usr/share/oem/python/lib64/python2.7"
+	ExecMultiCmdsLocalSudo(["rm -rf /etc/profile", \
+		"cp /usr/share/baselayout/profile "+profilepath])
+	Run("sed -i 's/:\/bin:/:\/bin:\/usr\/share\/oem\/bin:\/usr\/share\/oem\/python\/bin:/g' /etc/profile")
+	Run("source "+profilepath)
+	Run("echo '** configure environment successfully **' >> PackageStatus.txt")
+	if os.path.exists(rootprofilepath):
+		Run("rm -rf  /root/.bash_profile")
+	Run("cp /etc/profile /root/.bash_profile")
+	Run("source "+ rootprofilepath)
+	ExecMultiCmdsLocalSudo(["touch /etc/hosts",\
+		"echo '127.0.0.1 localhost' > /etc/hosts",\
+		"echo '** modify hosts  successfully **' >> PackageStatus.txt"])
+	# copy command to bin folder
+	Run("unzip -d prepare ./preparetools.zip")
+	ExecMultiCmdsLocalSudo(["cp ./prepare/killall "+binpath, \
+		"cp ./prepare/iperf "+binpath,\
+		"cp ./prepare/iozone "+binpath,\
+		"cp ./prepare/dos2unix "+binpath,\
+		"cp ./prepare/at "+binpath,\
+		"chmod 755 "+ binpath+"/*",\
+		"echo '** copy commend successfully **' >> PackageStatus.txt"])
+	# copy python library to python library folder
+	Run("tar zxvf ./prepare/pycrypto.tar.gz -C "+pythonlibrary)
+	ExecMultiCmdsLocalSudo(["tar zxvf ./prepare/paramiko-1.7.6.tar.gz -C ./prepare",\
+		"cd ./prepare/paramiko-1.7.6",\
+		"/usr/share/oem/python/bin/python setup.py install",\
+		"cd ~",\
+		"tar zxvf ./prepare/pexpect-3.3.tar.gz -C ./prepare",\
+		"cd ./prepare/pexpect-3.3",\
+		"/usr/share/oem/python/bin/python setup.py install",\
+		"cd ~"])
+	if os.path.exists (pythonlibrary+"/site-packages/pexpect") and os.path.exists (pythonlibrary+"/site-packages/paramiko"):
+		print "success"
+		return True
+	else:
+		RunLog.info ("pexpect and paramiko package installation failed!")
+		print "Failure"
+		return False
+
+    # modify resolv.conf 
+	resolv=open('/etc/resolv.conf','a')
+	resolv.write('search\n')
+	resolv.close()
+	return True
 
 def install_waagent_from_github():
 	RunLog.info ("Installing waagent from github...")
@@ -214,17 +264,24 @@ def RunTest():
 			elif node.tag == "tar_link":
 				tar_link[node.attrib["name"]] = node.text
 	
-	for package in packages_list:
-		if(not install_package(package)):
+	if not (current_distro=="coreos"):
+		for package in packages_list:
+			if(not install_package(package)):
+				success = False
+				Run("echo '"+package+"' failed to install >> PackageStatus.txt")
+				#break
+			else:
+				Run("echo '"+package+"' installed successfully >> PackageStatus.txt")
+	else:
+		if (not coreos_package_install()):
 			success = False
-			Run("echo '"+package+"' failed to install >> PackageStatus.txt")
-			#break
+			Run("echo 'coreos packages failed to install' >> PackageStatus.txt")
 		else:
-			Run("echo '"+package+"' installed successfully >> PackageStatus.txt")
-			
+			Run("echo 'coreos support tools installed successfully' >> PackageStatus.txt")
 	Run("echo '** Packages Installation Completed **' >> PackageStatus.txt")		
 	if success == True:
-		ConfigFilesUpdate()
+		if not (current_distro=="coreos"):
+			ConfigFilesUpdate()
 		if success == True:
 			RunLog.info('PACKAGE-INSTALL-CONFIG-PASS')
 			Run("echo 'PACKAGE-INSTALL-CONFIG-PASS' >> SetupStatus.txt")
