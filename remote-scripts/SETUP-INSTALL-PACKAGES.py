@@ -82,22 +82,22 @@ def coreos_package_install():
 		"echo '127.0.0.1 localhost' > /etc/hosts",\
 		"echo '** modify hosts  successfully **' >> PackageStatus.txt"])
 	# copy command to bin folder
-	Run("unzip -d prepare ./preparetools.zip")
-	ExecMultiCmdsLocalSudo(["cp ./prepare/killall "+binpath, \
-		"cp ./prepare/iperf "+binpath,\
-		"cp ./prepare/iozone "+binpath,\
-		"cp ./prepare/dos2unix "+binpath,\
-		"cp ./prepare/at "+binpath,\
+	Run("unzip -d prepare ./CoreosPreparationTools.zip")
+	ExecMultiCmdsLocalSudo(["cp ./CoreosPreparationTools/killall "+binpath, \
+		"cp ./CoreosPreparationTools/iperf "+binpath,\
+		"cp ./CoreosPreparationTools/iozone "+binpath,\
+		"cp ./CoreosPreparationTools/dos2unix "+binpath,\
+		"cp ./CoreosPreparationTools/at "+binpath,\
 		"chmod 755 "+ binpath+"/*",\
 		"echo '** copy commend successfully **' >> PackageStatus.txt"])
 	# copy python library to python library folder
-	Run("tar zxvf ./prepare/pycrypto.tar.gz -C "+pythonlibrary)
-	ExecMultiCmdsLocalSudo(["tar zxvf ./prepare/paramiko-1.7.6.tar.gz -C ./prepare",\
-		"cd ./prepare/paramiko-1.7.6",\
+	Run("tar zxvf ./CoreosPreparationTools/pycrypto.tar.gz -C "+pythonlibrary)
+	ExecMultiCmdsLocalSudo(["tar zxvf ./CoreosPreparationTools/paramiko-1.7.6.tar.gz -C ./CoreosPreparationTools",\
+		"cd ./CoreosPreparationTools/paramiko-1.7.6",\
 		"/usr/share/oem/python/bin/python setup.py install",\
 		"cd ~",\
-		"tar zxvf ./prepare/pexpect-3.3.tar.gz -C ./prepare",\
-		"cd ./prepare/pexpect-3.3",\
+		"tar zxvf ./CoreosPreparationTools/pexpect-3.3.tar.gz -C ./CoreosPreparationTools",\
+		"cd ./CoreosPreparationTools/pexpect-3.3",\
 		"/usr/share/oem/python/bin/python setup.py install",\
 		"cd ~"])
 	if os.path.exists (pythonlibrary+"/site-packages/pexpect") and os.path.exists (pythonlibrary+"/site-packages/paramiko"):

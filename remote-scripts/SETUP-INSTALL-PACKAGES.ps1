@@ -31,9 +31,9 @@ if ($isDeployed)
 
         LogMsg "Executing : $($currentTestData.testScript)"
         try{
-        	$OS_verify= RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat /etc/*release* | grep 'CoreOS' | wc -l" -runAsSudo
-        	$OS_verify=[int]$OS_verify.trim()
-        	if ($OS_verify -gt 0 )
+        	$IsCoreOS= RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat /etc/*release* | grep 'CoreOS' | wc -l" -runAsSudo
+        	$$IsCoreOS=[int]$IsCoreOS.trim()
+        	if ($IsCoreOS -gt 0 )
         	{
         	$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "/usr/share/oem/python/bin/python ./$($currentTestData.testScript)" -runAsSudo
         	}
@@ -65,7 +65,7 @@ if ($isDeployed)
 					LogMsg "** All the required packages for the distro installed successfully **"					
 					GetVMLogs -DeployedServices $isDeployed
 					#VM De-provision
-					if ($OS_verify -gt 0 )
+					if ($IsCoreOS -gt 0 )
 					{
 					$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "/usr/share/oem/bin/waagent -force -deprovision+user 2>&1" -runAsSudo
 					}
