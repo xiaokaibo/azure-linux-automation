@@ -35,6 +35,7 @@ if ($isDeployed)
         	$$IsCoreOS=[int]$IsCoreOS.trim()
         	if ($IsCoreOS -gt 0 )
         	{
+        	RemoteCopy -uploadTo $hs1VIP -port $hs1vm1sshport -files "Tools\CoreosPreparationTools.zip" -username $user -password $password -upload
         	$output = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "/usr/share/oem/python/bin/python ./$($currentTestData.testScript)" -runAsSudo
         	}
         	else{
